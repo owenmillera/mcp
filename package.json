@@ -1,5 +1,5 @@
 {
-	"name": "@bryantgillespie/directus-mcp-server",
+	"name": "bg-test-directus-mcp-server",
 	"version": "0.1.1",
 	"description": "Model context protocol server for Directus",
 	"main": "dist/index.js",
