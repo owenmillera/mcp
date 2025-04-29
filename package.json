@@ -15,10 +15,6 @@
 		"mcp",
 		"modelcontextprotocol"
 	],
-	"author": "Rijk van Zanten <rijkvanzanten@me.com>",
-	"contributors": [
-		"Bryant Gillespie <bryantgillespie@gmail.com>"
-	],
 	"license": "MIT",
 	"packageManager": "pnpm@10.4.1",
 	"bin": {
