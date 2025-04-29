@@ -7,6 +7,7 @@ export interface ToolDefinition<Params = any> {
 	name: string;
 	description: string;
 	inputSchema: ZodType<Params>;
+	annotations?: Record<string, any>;
 	handler: (
 		directus: Directus,
 		args: Params,

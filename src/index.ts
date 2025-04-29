@@ -31,19 +31,9 @@ async function main() {
 		},
 	);
 
-	// server.sendLoggingMessage({
-	// 	level: "info",
-	// 	data: "Server started successfully",
-	// });
-
 	server.setRequestHandler(
 		CallToolRequestSchema,
 		async (request: CallToolRequest) => {
-			// server.sendLoggingMessage({
-			// 	level: "debug",
-			// 	data: `Received CallToolRequests: ${request}`,
-			// });
-
 			try {
 				const tool = tools.find((definition) => {
 					return definition.name === request.params.name;
@@ -74,27 +64,12 @@ async function main() {
 	);
 
 	server.setRequestHandler(ListToolsRequestSchema, async () => {
-		// server.sendLoggingMessage({
-		// 	level: "debug",
-		// 	data: "Received ListToolsRequest",
-		// });
-
 		return { tools: toMpcTools(tools) };
 	});
 
 	const transport = new StdioServerTransport();
 
-	// server.sendLoggingMessage({
-	// 	level: "debug",
-	// 	data: "Connecting server to transport...",
-	// });
-
 	await server.connect(transport);
-
-	// server.sendLoggingMessage({
-	// 	level: "debug",
-	// 	data: "Directus MCP Server running on stdio",
-	// });
 }
 
 main().catch((error) => {

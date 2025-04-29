@@ -26,16 +26,19 @@
 		"maxLineLength": 100
 	},
 	"dependencies": {
-		"@directus/sdk": "19.0.1",
+		"@directus/schema": "^13.0.1",
+		"@directus/sdk": "19.1.0",
+		"@directus/system-data": "^3.1.0",
+		"@directus/types": "^13.1.0",
 		"@modelcontextprotocol/sdk": "1.7.0",
-		"dotenv": "16.4.7",
-		"zod": "3.24.2",
-		"zod-to-json-schema": "3.24.4"
+		"dotenv": "16.5.0",
+		"zod": "4.0.0-beta.20250424T163858",
+		"zod-to-json-schema": "3.24.5"
 	},
 	"devDependencies": {
 		"@directus/tsconfig": "3.0.0",
-		"@types/node": "22.13.10",
+		"@types/node": "22.15.3",
 		"prettier": "3.5.3",
-		"typescript": "5.8.2"
+		"typescript": "5.8.3"
 	}
 }

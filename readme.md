@@ -46,6 +46,33 @@ Then configure Claude AI to use the `npm` package as remote server:
 }
 ```
 
+## Development
+
+### MCP Inspector
+
+This project includes integration with the [MCP Inspector](https://github.com/modelcontextprotocol/inspector), a developer tool for testing and debugging MCP servers.
+
+To run the server with the MCP Inspector:
+
+```bash
+pnpm dev
+```
+
+This will start the server and automatically launch the MCP Inspector interface, allowing you to:
+
+- Test tools and see their responses in real-time
+- Inspect resources and capabilities
+- View logs and debug information
+- Try different inputs to test functionality
+
+For standard development without the Inspector:
+
+```bash
+pnpm dev:basic
+```
+
+The Inspector provides an interactive UI for testing your server without needing to integrate with an LLM platform during development.
+
 ## Tools
 
 ### Read Items
