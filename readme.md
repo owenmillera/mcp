@@ -8,26 +8,6 @@ This is an experiment by yours truly (@rijkvanzanten). Any and all PRs are more 
 
 This MCP server is built to work with NodeJS v22.12 or newer.
 
-### Global Installation (Recommended)
-
-`npm install -g @rijk/directus-mcp-server`
-
-Then configure Claude AI to use the `npm` package as remote server:
-
-```json
-{
-	"mcpServers": {
-		"directus": {
-			"command": "directus-mcp-server",
-			"env": {
-				"DIRECTUS_URL": "<your Directus instance URL>",
-				"DIRECTUS_TOKEN": "<your Directus user token>"
-			}
-		}
-	}
-}
-```
-
 ### Using npx (No Installation Required)
 
 You can use `npx` to run the package without installing it globally:
@@ -37,7 +17,7 @@ You can use `npx` to run the package without installing it globally:
 	"mcpServers": {
 		"directus": {
 			"command": "npx",
-			"args": ["@rijk/directus-mcp-server"],
+			"args": ["@directus-labs/content-mcp"],
 			"env": {
 				"DIRECTUS_URL": "<your Directus instance URL>",
 				"DIRECTUS_TOKEN": "<your Directus user token>"
@@ -59,6 +39,88 @@ You can use `npx` to run the package without installing it globally:
 		"directus": {
 			"command": "node",
 			"args": ["/path/to/directus-mcp-server/dist/index.js"]
+		}
+	}
+}
+```
+
+Sample Claude Desktop Config Local Dev
+
+```json
+{
+	"mcpServers": {
+		"directus": {
+			"command": "node",
+			"args": [
+				"REPLACE_PATH_HERE/directus-mcp-server/dist/index.js"
+			],
+			"env": {
+				"DIRECTUS_URL": "DIRECTUS_URL",
+				"DIRECTUS_TOKEN": "DIRECTUS_TOKEN",
+				"SYSTEM_PROMPT_ENABLED": "true",
+				"SYSTEM_PROMPT": "You're a content editor working at Directus.\nYou're a master at copywriting and creating messaging that resonates with technical audiences.\nYou'll be given details about a Directus instance and the schema within it. You'll be asked to update content and other helpful tasks. **Rules** \n - If you're updating HTML / WYSWIG fields inside the CMS - DO NOT ADD extra styling, classes, or markup outside the standard HTML elements. If you're not 95% sure what values should go into a certain field, stop and ask the user. Before deleting anything, confirm with the user and prompt them for an explicit DELETE confirmation via text.",
+				"PROMPTS_COLLECTION_ENABLED": "true",
+				"PROMPTS_COLLECTION": "ai_prompts"
+			}
+		}
+	}
+}
+```
+
+### Example Configurations
+
+#### Basic Configuration with Token
+
+```json
+{
+	"mcpServers": {
+		"directus": {
+			"command": "npx",
+			"args": ["@directus-labs/content-mcp"],
+			"env": {
+				"DIRECTUS_URL": "https://your-directus-instance.com",
+				"DIRECTUS_TOKEN": "your_directus_token"
+			}
+		}
+	}
+}
+```
+
+#### Configuration with Email/Password Authentication
+
+```json
+{
+	"mcpServers": {
+		"directus": {
+			"command": "npx",
+			"args": ["@directus-labs/content-mcp"],
+			"env": {
+				"DIRECTUS_URL": "https://your-directus-instance.com",
+				"DIRECTUS_USER_EMAIL": "user@example.com",
+				"DIRECTUS_USER_PASSWORD": "your_password"
+			}
+		}
+	}
+}
+```
+
+#### Advanced Configuration with Custom System Prompt and Tool Restrictions
+
+```json
+{
+	"mcpServers": {
+		"directus": {
+			"command": "npx",
+			"args": ["@directus-labs/content-mcp"],
+			"env": {
+				"DIRECTUS_URL": "https://your-directus-instance.com",
+				"DIRECTUS_TOKEN": "your_directus_token",
+				"DISABLE_TOOLS": ["delete-item", "update-field"],
+				"SYSTEM_PROMPT_ENABLED": "true",
+				"SYSTEM_PROMPT": "You are an assistant specialized in managing content for our marketing website.",
+				"PROMPTS_COLLECTION_ENABLED": "true",
+				"PROMPTS_COLLECTION": "ai_prompts"
+			}
 		}
 	}
 }
@@ -428,4 +490,4 @@ Example for Markdown to HTML:
 
 ## License
 
-MIT
+TBD
