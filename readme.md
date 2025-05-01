@@ -29,6 +29,25 @@ Then configure Claude AI to use the `npm` package as remote server:
 }
 ```
 
+### Using npx (No Installation Required)
+
+You can use `npx` to run the package without installing it globally:
+
+```json
+{
+	"mcpServers": {
+		"directus": {
+			"command": "npx",
+			"args": ["bg-test-directus-mcp-server"],
+			"env": {
+				"DIRECTUS_URL": "<your Directus instance URL>",
+				"DIRECTUS_TOKEN": "<your Directus user token>"
+			}
+		}
+	}
+}
+```
+
 ### Local / Dev Installation
 
 1. Clone the repo
@@ -94,15 +113,6 @@ Example:
   "limit": 10
 }
 ```
-
-### Read Current User
-
-Get information about the current user. Effectively the `/users/me` endpoint.
-
-### Read Collections
-
-Return what collections/fields are available in the system. Use this tool first to discover available collections before using the `read-items` tool.
-
 ## License
 
 MIT
