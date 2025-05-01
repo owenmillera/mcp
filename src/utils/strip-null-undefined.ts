@@ -4,41 +4,43 @@
  * @returns A new object or array with null/undefined properties/elements removed, or the original value if not an object/array.
  */
 export function stripNullUndefined<T>(obj: T): T | undefined {
-    if (obj === null || obj === undefined) {
-        return undefined;
-    }
+	if (obj === null || obj === undefined) {
+		return undefined;
+	}
 
-    // Handle arrays
-    if (Array.isArray(obj)) {
-        const newArr = obj.reduce<any[]>((acc, item) => {
-            const processed = stripNullUndefined(item);
-            if (processed !== undefined) {
-                acc.push(processed);
-            }
-            return acc;
-        }, []);
+	// Handle arrays
+	if (Array.isArray(obj)) {
+		const newArr = obj.reduce<any[]>((acc, item) => {
+			const processed = stripNullUndefined(item);
 
-        return newArr.length > 0 ? newArr as T : undefined;
-    }
+			if (processed !== undefined) {
+				acc.push(processed);
+			}
 
-    // Handle objects (excluding Date and other special objects)
-    if (typeof obj === 'object' && !(obj instanceof Date) &&
-        !(obj instanceof RegExp) && !(obj instanceof Map) &&
-        !(obj instanceof Set) && !(obj instanceof Error)) {
+			return acc;
+		}, []);
 
-        const newObj: Record<string, any> = {};
-        let hasKeys = false;
+		return newArr.length > 0 ? newArr as T : undefined;
+	}
 
-        for (const key of Object.keys(obj)) {
-            const value = stripNullUndefined(obj[key as keyof T]);
-            if (value !== undefined) {
-                newObj[key] = value;
-                hasKeys = true;
-            }
-        }
+	// Handle objects (excluding Date and other special objects)
+	if (typeof obj === 'object' && !(obj instanceof Date)
+		&& !(obj instanceof RegExp) && !(obj instanceof Map)
+		&& !(obj instanceof Set) && !(obj instanceof Error)) {
+		const newObj: Record<string, any> = {};
+		let hasKeys = false;
 
-        return hasKeys ? newObj as T : undefined;
-    }
+		for (const key of Object.keys(obj)) {
+			const value = stripNullUndefined(obj[key as keyof T]);
 
-    return obj;
+			if (value !== undefined) {
+				newObj[key] = value;
+				hasKeys = true;
+			}
+		}
+
+		return hasKeys ? newObj as T : undefined;
+	}
+
+	return obj;
 }

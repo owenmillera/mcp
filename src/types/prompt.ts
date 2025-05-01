@@ -1,7 +1,7 @@
-import type {GetPromptResult } from "@modelcontextprotocol/sdk/types.js";
-import type { ZodType } from "zod";
-import type { Directus } from "../directus.js";
-import type { Schema } from "../types/schema.js";
+import type { GetPromptResult } from '@modelcontextprotocol/sdk/types.js';
+import type { ZodType } from 'zod';
+import type { Directus } from '../directus.js';
+import type { Schema } from '../types/schema.js';
 
 export interface PromptDefinition<Params = any> {
 	name: string;

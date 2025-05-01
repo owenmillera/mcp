@@ -1,5 +1,6 @@
-import { formatErrorResponse } from "./response.js";
-import type { Schema } from "../types/schema.js";
+import type { Schema } from '../types/schema.js';
+import { formatErrorResponse } from './response.js';
+
 /**
  * Check if a collection exists in the context schema.
  * @param collection - The collection to check.
@@ -14,5 +15,6 @@ export function checkCollection(collection: string, contextSchema: Schema) {
 			),
 		);
 	}
-	return;
+
+	return contextSchema[collection];
 }

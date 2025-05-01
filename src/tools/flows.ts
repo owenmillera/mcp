@@ -1,40 +1,41 @@
-import { readFlows, triggerFlow } from "@directus/sdk";
+import { readFlows, triggerFlow } from '@directus/sdk';
 
-import * as z from "zod";
-import { defineTool } from "../utils/define.js";
+import * as z from 'zod';
+import { defineTool } from '../utils/define.js';
 import {
-	formatSuccessResponse,
 	formatErrorResponse,
-} from "../utils/response.js";
+	formatSuccessResponse,
+} from '../utils/response.js';
 
-export const readFlowsTool = defineTool("read-flows", {
-	description: `Fetch manually triggerable flows from Directus. Flows allow users to automate tasks inside Directus.`,
+export const readFlowsTool = defineTool('read-flows', {
+	description: 'Fetch manually triggerable flows from Directus. Flows allow users to automate tasks inside Directus.',
 	annotations: {
-		title: "Read Flows",
+		title: 'Read Flows',
 		readOnlyHint: true,
 	},
 	inputSchema: z.object({}),
-	handler: async (directus, _query, {}) => {
+	handler: async (directus, _query) => {
 		try {
 			const result = await directus.request(
 				readFlows({
 					filter: {
 						trigger: {
 							// @ts-expect-error - _prefixed operators not working
-							_eq: "manual",
+							_eq: 'manual',
 						},
 					},
 				}),
 			);
 
 			return formatSuccessResponse(result);
-		} catch (error) {
+		}
+		catch (error) {
 			return formatErrorResponse(error);
 		}
 	},
 });
 
-export const triggerFlowTool = defineTool("trigger-flow", {
+export const triggerFlowTool = defineTool('trigger-flow', {
 	description: `Trigger a flow by ID. Rules:
 	  - Always call read-flows first and include the FULL flow definition in your reasoning
 	  - Always explicitly check if the flow requires selection (options.requireSelection !== false)
@@ -42,27 +43,27 @@ export const triggerFlowTool = defineTool("trigger-flow", {
 	  - Always provide a complete data object with all required fields
 	  - NEVER skip providing keys when requireSelection is true or undefined`,
 	annotations: {
-		title: "Trigger Flow",
+		title: 'Trigger Flow',
 	},
 
 	inputSchema: z.object({
 		flowDefinition: z
 			.record(z.string(), z.any())
-			.describe("The full flow definition from the read-flows call."),
-		flowId: z.string().describe("The ID of the flow to trigger"),
+			.describe('The full flow definition from the read-flows call.'),
+		flowId: z.string().describe('The ID of the flow to trigger'),
 		collection: z
 			.string()
-			.describe("The collection of the items to trigger the flow on."),
+			.describe('The collection of the items to trigger the flow on.'),
 		keys: z
 			.array(z.string())
 			.describe(
-				"The primary keys of the items to trigger the flow on. If the flow requireSelection field is true, you must provide the keys.",
+				'The primary keys of the items to trigger the flow on. If the flow requireSelection field is true, you must provide the keys.',
 			),
 		data: z
 			.record(z.string(), z.any())
 			.optional()
 			.describe(
-				"The data to pass to the flow. Should be an object with keys that match the flow *options.fields.fields* property",
+				'The data to pass to the flow. Should be an object with keys that match the flow *options.fields.fields* property',
 			),
 	}),
 
@@ -72,7 +73,7 @@ export const triggerFlowTool = defineTool("trigger-flow", {
 
 			// Validate flow existence
 			if (!flowDefinition) {
-				throw new Error("Flow definition must be provided");
+				throw new Error('Flow definition must be provided');
 			}
 
 			// Validate flow ID matches
@@ -85,16 +86,17 @@ export const triggerFlowTool = defineTool("trigger-flow", {
 			// Validate collection is valid for this flow
 			if (!flowDefinition.options.collections.includes(collection)) {
 				throw new Error(
-					`Invalid collection "${collection}". This flow only supports: ${flowDefinition.options.collections.join(", ")}`,
+					`Invalid collection "${collection}". This flow only supports: ${flowDefinition.options.collections.join(', ')}`,
 				);
 			}
 
 			// Check if selection is required
 			const requiresSelection =
 				flowDefinition.options.requireSelection !== false;
+
 			if (requiresSelection && (!keys || keys.length === 0)) {
 				throw new Error(
-					"This flow requires selecting at least one item, but no keys were provided",
+					'This flow requires selecting at least one item, but no keys were provided',
 				);
 			}
 
@@ -113,10 +115,11 @@ export const triggerFlowTool = defineTool("trigger-flow", {
 
 			// All validations passed, trigger the flow
 			const result = await directus.request(
-				triggerFlow("POST", flowId, { ...data, collection, keys }),
+				triggerFlow('POST', flowId, { ...data, collection, keys }),
 			);
 			return formatSuccessResponse(result);
-		} catch (error) {
+		}
+		catch (error) {
 			return formatErrorResponse(error);
 		}
 	},

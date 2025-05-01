@@ -1,40 +1,40 @@
+import { Buffer } from 'node:buffer';
 import {
-	readFiles,
+	importFile,
 	readAssetArrayBuffer,
 	readFile,
-	importFile,
+	readFiles,
 	updateFilesBatch,
-} from "@directus/sdk";
-import { Buffer } from "buffer";
-import { FileSchema } from "../types/files.js";
-import { z } from "zod";
+} from '@directus/sdk';
+import { z } from 'zod';
+import { FileSchema } from '../types/files.js';
 
-import { defineTool } from "../utils/define.js";
-import { itemQuerySchema } from "../types/query.js";
+import { itemQuerySchema } from '../types/query.js';
+import { defineTool } from '../utils/define.js';
 import {
-	formatSuccessResponse,
 	formatErrorResponse,
 	formatResourceResponse,
-} from "../utils/response.js";
+	formatSuccessResponse,
+} from '../utils/response.js';
 
-export const readFilesTool = defineTool("read-files", {
+export const readFilesTool = defineTool('read-files', {
 	description:
 		"Read file (asset) metadata. Provide a query to list multiple files' metadata. Provide 'id' to get a single file's metadata. Provide 'id' and 'raw: true' to get a single file's raw content (Base64 encoded).",
 	annotations: {
-		title: "Read Files",
+		title: 'Read Files',
 		readOnlyHint: true,
 	},
 	inputSchema: z.object({
 		query: itemQuerySchema
 			.optional()
 			.describe(
-				"Directus query parameters (filter, sort, fields, limit, deep, etc.) for file metadata.",
+				'Directus query parameters (filter, sort, fields, limit, deep, etc.) for file metadata.',
 			),
 		id: z
 			.string()
 			.optional()
 			.describe(
-				"The ID of the specific file. Omit to retrieve all files.",
+				'The ID of the specific file. Omit to retrieve all files.',
 			),
 		raw: z
 			.boolean()
@@ -49,7 +49,7 @@ export const readFilesTool = defineTool("read-files", {
 			// Case 1: Get a single file (with or without raw content)
 			if (input.id) {
 				// Default to all fields if raw to ensure we get type and filename
-				const fieldsForMetadata = input.raw ? ["*"] : input.query?.fields;
+				const fieldsForMetadata = input.raw ? ['*'] : input.query?.fields;
 
 				const metadata = await directus.request(
 					readFile(input.id, { fields: fieldsForMetadata }),
@@ -65,11 +65,11 @@ export const readFilesTool = defineTool("read-files", {
 						readAssetArrayBuffer(input.id),
 					);
 					const fileBuffer = Buffer.from(fileData);
-					const base64Content = fileBuffer.toString("base64");
+					const base64Content = fileBuffer.toString('base64');
 					const sizeInBytes = fileBuffer.byteLength;
 
 					// The fallback here is janky and certain to fail if the asset is missing a type and it's not an image. Should we just throw an errror?
-					const mimeType = metadata["type"] || "image/jpeg";
+					const mimeType = metadata['type'] || 'image/jpeg';
 
 					return formatResourceResponse(
 						`directus://files/${input.id}/raw`,
@@ -88,22 +88,23 @@ export const readFilesTool = defineTool("read-files", {
 				input.query ? readFiles(input.query) : readFiles(),
 			);
 			return formatSuccessResponse(files);
-		} catch (error) {
+		}
+		catch (error) {
 			return formatErrorResponse(error);
 		}
 	},
 });
 
-export const updateFilesTool = defineTool("update-files", {
-	description: "Update the metadata of existing file(s) in Directus.",
+export const updateFilesTool = defineTool('update-files', {
+	description: 'Update the metadata of existing file(s) in Directus.',
 	annotations: {
-		title: "Update File",
+		title: 'Update File',
 	},
 	inputSchema: z.object({
 		data: z
 			.array(FileSchema)
 			.describe(
-				"An array of objects containing the id and fields to update (e.g., title, description, tags, folder).",
+				'An array of objects containing the id and fields to update (e.g., title, description, tags, folder).',
 			),
 	}),
 
@@ -117,20 +118,21 @@ export const updateFilesTool = defineTool("update-files", {
 
 			const result = await directus.request(updateFilesBatch(input.data));
 			return formatSuccessResponse(result);
-		} catch (error) {
+		}
+		catch (error) {
 			return formatErrorResponse(error);
 		}
 	},
 });
 
-export const importFileTool = defineTool("import-file", {
+export const importFileTool = defineTool('import-file', {
 	description:
 		"Import a file to Directus from a web URL. Optionally include 'data' for file metadata (title, folder, etc.).",
 	annotations: {
-		title: "Import File",
+		title: 'Import File',
 	},
 	inputSchema: z.object({
-		url: z.string().describe("URL of the file to import."),
+		url: z.string().describe('URL of the file to import.'),
 		data: FileSchema,
 	}),
 
@@ -140,7 +142,8 @@ export const importFileTool = defineTool("import-file", {
 				importFile(input.url, input.data || {}),
 			);
 			return formatSuccessResponse(result);
-		} catch (error) {
+		}
+		catch (error) {
 			return formatErrorResponse(error);
 		}
 	},

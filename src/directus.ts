@@ -1,16 +1,15 @@
 import type {
+	AuthenticationClient,
 	DirectusClient,
 	RestClient,
-	AuthenticationClient,
-} from "@directus/sdk";
+} from '@directus/sdk';
+import type { Config } from './config.js';
+import type { Schema } from './types/schema.js';
 import {
+	authentication,
 	createDirectus as createSdk,
 	rest,
-	authentication,
-} from "@directus/sdk";
-import type { Config } from "./config.js";
-import type { Schema } from "./types/schema.js";
-import { formatErrorResponse, formatResourceResponse, formatSuccessResponse } from "./utils/response.js";
+} from '@directus/sdk';
 
 export type Directus = DirectusClient<Schema> &
 	RestClient<Schema> &
@@ -31,7 +30,7 @@ export const createDirectus = (config: Config) =>
  */
 export async function authenticateDirectus(directus: Directus, config: Config) {
 	if (!directus || !config) {
-		throw new Error("Directus or config is not defined");
+		throw new Error('Directus or config is not defined');
 	}
 
 	// Token-based authentication
@@ -47,8 +46,10 @@ export async function authenticateDirectus(directus: Directus, config: Config) {
 				config.DIRECTUS_USER_EMAIL,
 				config.DIRECTUS_USER_PASSWORD,
 			);
+
 			return;
-		} catch (error) {
+		}
+		catch (error) {
 			const errorMessage =
 				error instanceof Error ? error.message : String(error);
 			throw new Error(
@@ -59,49 +60,6 @@ export async function authenticateDirectus(directus: Directus, config: Config) {
 
 	// No valid authentication method
 	throw new Error(
-		"No valid authentication method provided (requires either DIRECTUS_TOKEN or both DIRECTUS_USER_EMAIL and DIRECTUS_USER_PASSWORD)",
+		'No valid authentication method provided (requires either DIRECTUS_TOKEN or both DIRECTUS_USER_EMAIL and DIRECTUS_USER_PASSWORD)',
 	);
-}
-/**
- * Use the Directus SDK to make a request and format the response.
- * @param collection - The collection to make the request to.
- * @param contextSchema - The schema of the context.
- * @param requestFn - The function to make the request.
- * @returns The formatted response.
- */
-export async function useDirectus<T>(
-	collection: string | null | undefined,
-	contextSchema: Schema,
-	requestFn: () => Promise<T>,
-	options: {
-		asResource?: boolean;
-	} = {},
-): Promise<{ content: { type: "text"; text: string }[] }> {
-	if (collection && !contextSchema[collection]) {
-		return formatErrorResponse(
-			new Error(
-				`Collection "${collection}" not found. Use read-collections tool first.`,
-			),
-		);
-	}
-	try {
-		const result = await requestFn();
-
-		return options.asResource
-			? // @ts-expect-error - result.id is not always present
-				formatResourceResponse(collection, result.id ? result.id : null, result)
-			: formatSuccessResponse(result);
-	} catch (error: unknown) {
-		let actualError = error;
-		if (
-			typeof error === "object" &&
-			error !== null &&
-			"errors" in error &&
-			Array.isArray(error.errors) &&
-			error.errors.length > 0
-		) {
-			actualError = error.errors[0];
-		}
-		return formatErrorResponse(actualError);
-	}
 }

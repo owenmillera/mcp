@@ -1,22 +1,23 @@
-import { isDirectusError, type DirectusApiError } from "./is-directus-error.js";
+import type { DirectusApiError } from './is-directus-error.js';
+import { isDirectusError } from './is-directus-error.js';
 
 /**
  * Format a success response for the MCP server.
- * @param message - The message to send to the
  * @param data - The data to format.
+ * @param message - The message to send to the user.
  * @returns The formatted success response.
  */
 export const formatSuccessResponse = (data: unknown, message?: string) => {
 	if (message) {
 		const formatted = `<data>\n${JSON.stringify(data, null, 2)}\n</data>\n<message>\n${message}\n</message>`;
 		return {
-			content: [{ type: "text" as const, text: `${formatted}` }],
+			content: [{ type: 'text' as const, text: `${formatted}` }],
 		};
 	}
 
 	return {
 		content: [
-			{ type: "text" as const, text: `${JSON.stringify(data, null, 2)}` },
+			{ type: 'text' as const, text: `${JSON.stringify(data, null, 2)}` },
 		],
 	};
 };
@@ -32,22 +33,25 @@ export const formatErrorResponse = (error: unknown) => {
 		// Handle Directus API errors
 		errorPayload = {
 			directusApiErrors: error.errors.map((e: DirectusApiError) => ({
-				message: e.message || "Unknown error",
+				message: e.message || 'Unknown error',
 				code: e.extensions?.code,
 			})),
 		};
-	} else {
+	}
+	else {
 		// Handle generic errors
-		let message = "An unknown error occurred.";
+		let message = 'An unknown error occurred.';
 		let code: string | undefined;
 
 		if (error instanceof Error) {
 			message = error.message;
-			code = "code" in error ? String(error.code) : undefined;
-		} else if (typeof error === "object" && error !== null) {
-			message = "message" in error ? String(error.message) : message;
-			code = "code" in error ? String(error.code) : undefined;
-		} else if (typeof error === "string") {
+			code = 'code' in error ? String(error.code) : undefined;
+		}
+		else if (typeof error === 'object' && error !== null) {
+			message = 'message' in error ? String(error.message) : message;
+			code = 'code' in error ? String(error.code) : undefined;
+		}
+		else if (typeof error === 'string') {
 			message = error;
 		}
 
@@ -56,7 +60,7 @@ export const formatErrorResponse = (error: unknown) => {
 
 	return {
 		isError: true,
-		content: [{ type: "text" as const, text: JSON.stringify(errorPayload) }],
+		content: [{ type: 'text' as const, text: JSON.stringify(errorPayload) }],
 	};
 };
 
@@ -79,8 +83,8 @@ export const formatResourceResponse = (
 	size?: number,
 ) => {
 	const resourceBase = {
-		uri: uri,
-		mimeType: mimeType,
+		uri,
+		mimeType,
 		...(size !== undefined && { size }), // Conditionally add size if provided
 	};
 
@@ -97,8 +101,8 @@ export const formatResourceResponse = (
 	return {
 		content: [
 			{
-				type: "resource" as const,
-				resource: resource,
+				type: 'resource' as const,
+				resource,
 			},
 		],
 	};

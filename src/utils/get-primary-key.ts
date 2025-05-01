@@ -6,19 +6,19 @@
  */
 export function getPrimaryKeyField(
 	collection: string,
-	schema: Record<string, Record<string, any>>
-  ): string | null {
+	schema: Record<string, Record<string, any>>,
+): string | null {
 	// Check if collection exists in schema
 	if (!schema[collection]) {
-	  return null;
+		return null;
 	}
 
 	// Find the field that has primary_key: true
 	for (const [fieldName, fieldConfig] of Object.entries(schema[collection])) {
-	  if (fieldConfig.primary_key === true) {
-		return fieldName;
-	  }
+		if (fieldConfig.primary_key === true) {
+			return fieldName;
+		}
 	}
 
 	return null;
-  }
+}
