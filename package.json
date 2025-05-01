@@ -1,5 +1,5 @@
 {
-	"name": "@directus-labs/mcp",
+	"name": "@directus-labs/content-mcp",
 	"type": "module",
 	"version": "0.1.1",
 	"packageManager": "pnpm@10.4.1",
