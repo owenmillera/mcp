@@ -15,7 +15,6 @@
 		"mcp",
 		"modelcontextprotocol"
 	],
-	"license": "MIT",
 	"packageManager": "pnpm@10.4.1",
 	"bin": {
 		"directus-mcp-server": "./dist/index.js"
@@ -25,17 +24,18 @@
 		"maxLineLength": 100
 	},
 	"dependencies": {
-		"@directus/schema": "^13.0.1",
 		"@directus/sdk": "19.1.0",
-		"@directus/system-data": "^3.1.0",
-		"@directus/types": "^13.1.0",
-		"@modelcontextprotocol/sdk": "1.7.0",
+		"@modelcontextprotocol/sdk": "1.10.2",
 		"dotenv": "16.5.0",
-		"zod": "4.0.0-beta.20250424T163858",
-		"zod-to-json-schema": "3.24.5"
+		"isomorphic-dompurify": "^2.24.0",
+		"marked": "^15.0.11",
+		"zod": "4.0.0-beta.20250424T163858"
 	},
 	"devDependencies": {
+		"@directus/schema": "^13.0.1",
+		"@directus/system-data": "^3.1.0",
 		"@directus/tsconfig": "3.0.0",
+		"@directus/types": "^13.1.0",
 		"@types/node": "22.15.3",
 		"prettier": "3.5.3",
 		"typescript": "5.8.3"
