@@ -1,20 +1,24 @@
 import {
 	readItems,
 	createItem,
-	createItems,
 	updateItem,
-	updateItems,
 	deleteItem,
-	deleteItems,
 } from "@directus/sdk";
 
 import * as z from "zod";
-import { defineTool } from "../utils/define-tool.js";
-import { itemQuerySchema } from "./schemas.js";
-import { useDirectus } from "../directus.js";
+import { defineTool } from "../utils/define.js";
+import { itemQuerySchema } from "../types/query.js";
+import { itemLink } from "../utils/links.js";
+import { formatSuccessResponse, formatErrorResponse } from "../utils/response.js";
+import { checkCollection } from "../utils/check-collection.js";
+import { getPrimaryKeyField } from "../utils/get-primary-key.js";
 
 export const readItemsTool = defineTool("read-items", {
-	description: "Read items from any collection. ",
+	description:
+		`Fetch items from any Directus collection.
+		- Use the *fields* param with dot notation to fetch related fields.
+		For example – fields: ['title','slug','author.first_name','author.last_name']
+		`,
 	annotations: {
 		title: "Read Items",
 		readOnlyHint: true,
@@ -22,81 +26,59 @@ export const readItemsTool = defineTool("read-items", {
 	inputSchema: z.object({
 		collection: z.string().describe("The name of the collection to read from"),
 		query: itemQuerySchema.describe(
-			"Directus query parameters (filter, sort, fields, limit, deep, etc. You can use the read-collections tool to get the schema of the collection first.)",
+			`Directus query parameters (filter, sort, fields, limit, deep, etc. You can use the read-collections tool to get the schema of the collection first.)`
 		),
 	}),
 	handler: async (directus, query, { schema: contextSchema }) => {
-		const { collection, query: queryParams } = query;
-		return useDirectus(
-			collection,
-			contextSchema,
-			// @ts-ignore
-			async () => await directus.request(readItems(collection, queryParams)),
-		);
+		try {
+			const { collection, query: queryParams } = query;
+			checkCollection(collection, contextSchema);
+
+			const result = await directus.request(readItems(collection as unknown as never, queryParams));
+			return formatSuccessResponse(result);
+		} catch (error) {
+			return formatErrorResponse(error);
+		}
 	},
 });
 
 export const createItemTool = defineTool("create-item", {
-	description: "Create a single item in a collection.",
+	description: "Create an item in a collection. Will return a link to the created item. You should show the link to the user.",
 	annotations: {
 		title: "Create Item",
 	},
+
 	inputSchema: z.object({
 		collection: z.string().describe("The name of the collection to create in"),
 		item: z.record(z.string(), z.unknown()).describe("The item data to create"),
 		query: itemQuerySchema
-			// Pick only the fields and meta parameters
 			.pick({ fields: true, meta: true })
 			.optional()
 			.describe(
 				"Optional query parameters for the created item (e.g., fields)",
 			),
 	}),
-	handler: async (directus, input, { schema: contextSchema }) => {
-		const { collection, item, query } = input;
-		return useDirectus(
-			collection,
-			contextSchema,
-			async () => await directus.request(createItem(collection, item, query)),
-		);
-	},
-});
+	handler: async (directus, input, { schema: contextSchema, baseUrl }) => {
+		try {
+			const { collection, item, query } = input;
+			checkCollection(collection, contextSchema);
+			const primaryKeyField = getPrimaryKeyField(collection, contextSchema);
 
-export const createItemsTool = defineTool("create-items", {
-	description: "Create multiple items in a collection.",
-	annotations: {
-		title: "Create Items",
-	},
-	inputSchema: z.object({
-		collection: z.string().describe("The name of the collection to create in"),
-		items: z
-			.array(
-				z.record(z.string(), z.unknown()).describe("An item data to create"),
-			)
-			.describe("An array of item data to create"),
-		query: itemQuerySchema
-			.optional()
-			.describe(
-				"Optional query parameters for the created items (e.g., fields)",
-			),
-	}),
-	handler: async (directus, input, { schema: contextSchema }) => {
-		const { collection, items, query } = input;
-		return useDirectus(
-			collection,
-			contextSchema,
-			async () =>
-				await directus.request(createItems(collection, items, query)),
-		);
+			const result = await directus.request(createItem(collection, item, query));
+			return formatSuccessResponse(result, `Item created: ${itemLink(baseUrl, collection, result[primaryKeyField as any])}`);
+		} catch (error) {
+			return formatErrorResponse(error);
+		}
 	},
 });
 
 export const updateItemTool = defineTool("update-item", {
-	description: "Update a single item in a collection.",
+	description: "Update an existing item in a collection. Will return a link to the created item. You should show the link to the user.",
 	annotations: {
 		title: "Update Item",
 		destructiveHint: true,
 	},
+
 	inputSchema: z.object({
 		collection: z.string().describe("The name of the collection to update in"),
 		id: z
@@ -112,51 +94,22 @@ export const updateItemTool = defineTool("update-item", {
 				"Optional query parameters for the updated item (e.g., fields)",
 			),
 	}),
-	handler: async (directus, input, { schema: contextSchema }) => {
-		const { collection, id, data, query } = input;
-		return useDirectus(
-			collection,
-			contextSchema,
-			async () =>
-				await directus.request(updateItem(collection, id, data, query)),
-		);
-	},
-});
-
-export const updateItemsTool = defineTool("update-items", {
-	description: "Update multiple items in a collection.",
-	annotations: {
-		title: "Update Items",
-		destructiveHint: true,
-	},
-	inputSchema: z.object({
-		collection: z.string().describe("The name of the collection to update in"),
-		ids: z
-			.array(z.union([z.string(), z.number()]))
-			.describe("The primary keys of the items to update"),
-		data: z
-			.record(z.string(), z.unknown())
-			.describe("The partial item data to apply to all items"),
-		query: itemQuerySchema
-			.pick({ fields: true, meta: true })
-			.optional()
-			.describe(
-				"Optional query parameters for the updated items (e.g., fields)",
-			),
-	}),
-	handler: async (directus, input, { schema: contextSchema }) => {
-		const { collection, ids, data, query } = input;
-		return useDirectus(
-			collection,
-			contextSchema,
-			async () =>
-				await directus.request(updateItems(collection, ids, data, query)),
-		);
+	handler: async (directus, input, { schema: contextSchema, baseUrl }) => {
+		try {
+			const { collection, id, data, query } = input;
+			checkCollection(collection, contextSchema);
+			const primaryKeyField = getPrimaryKeyField(collection, contextSchema);
+			const result = await directus.request(updateItem(collection, id, data, query));
+			return formatSuccessResponse(result, `Item updated: ${itemLink(baseUrl, collection, result[primaryKeyField as any])}`);
+		} catch (error) {
+			return formatErrorResponse(error);
+		}
 	},
 });
 
 export const deleteItemTool = defineTool("delete-item", {
-	description: "Delete a single item from a collection. Please confirm with the user before deleting.",
+	description:
+		"Delete a single item from a collection. Please confirm with the user before deleting.",
 	annotations: {
 		title: "Delete Item",
 		destructiveHint: true,
@@ -170,35 +123,13 @@ export const deleteItemTool = defineTool("delete-item", {
 			.describe("The primary key of the item to delete"),
 	}),
 	handler: async (directus, input, { schema: contextSchema }) => {
-		const { collection, id } = input;
-		return useDirectus(
-			collection,
-			contextSchema,
-			async () => await directus.request(deleteItem(collection, id)),
-		);
-	},
-});
-
-export const deleteItemsTool = defineTool("delete-items", {
-	description: "Delete multiple items from a collection. Please confirm with the user before deleting.",
-	annotations: {
-		title: "Delete Items",
-		destructiveHint: true,
-	},
-	inputSchema: z.object({
-		collection: z
-			.string()
-			.describe("The name of the collection to delete from"),
-		ids: z
-			.array(z.union([z.string(), z.number()]))
-			.describe("The primary keys of the items to delete"),
-	}),
-	handler: async (directus, input, { schema: contextSchema }) => {
-		const { collection, ids } = input;
-		return useDirectus(
-			collection,
-			contextSchema,
-			async () => await directus.request(deleteItems(collection, ids)),
-		);
+		try {
+			const { collection, id } = input;
+			checkCollection(collection, contextSchema);
+			const result = await directus.request(deleteItem(collection, id));
+			return formatSuccessResponse(result);
+		} catch (error) {
+			return formatErrorResponse(error);
+		}
 	},
 });

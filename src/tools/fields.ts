@@ -5,19 +5,20 @@ import {
 	readField,
 	createField,
 	updateField,
-	deleteField,
 } from "@directus/sdk";
-import { defineTool } from "../utils/define-tool.js";
-import { useDirectus, formatErrorResponse } from "../directus.js";
+import { defineTool } from "../utils/define.js";
 import {
 	CreateFieldDataSchema,
 	UpdateFieldDataSchema,
 } from "../types/fields.js";
-import type { Schema } from "../types/schema.js";
+import {
+	formatSuccessResponse,
+	formatErrorResponse,
+} from "../utils/response.js";
 
 export const readFieldsTool = defineTool("read-fields", {
 	description:
-		"Retrieve the field definitions for all collections or a specific collection.",
+		"Retrieve the field definitions for all collections or a specific collection. Note: This is lots of data and should be used sparingly. Use only if you cannot find the field information you need and you absolutely need to have the raw field definition.",
 	inputSchema: z.object({
 		collection: z
 			.string()
@@ -25,33 +26,41 @@ export const readFieldsTool = defineTool("read-fields", {
 			.describe(
 				"Optional: The name (ID) of the collection to retrieve fields for. If omitted, fields for all collections are returned.",
 			),
-		// TODO: Add query parameters like limit, sort if needed based on API spec
 	}),
-	handler: async (directus, { collection }, { schema }) => {
-		const requestFn = () =>
-			collection
-				? directus.request(readFieldsByCollection(collection))
-				: directus.request(readFields());
-		return useDirectus(collection, schema, requestFn);
+	handler: async (directus, { collection }) => {
+		try {
+			const fields = collection
+				? await directus.request(readFieldsByCollection(collection))
+				: await directus.request(readFields());
+			return formatSuccessResponse(fields);
+		} catch (error) {
+			return formatErrorResponse(error);
+		}
 	},
 });
 
 export const readFieldTool = defineTool("read-field", {
-	description: "Retrieve the definition of a specific field within a collection.",
+	description:
+		"Retrieve the definition of a specific field within a collection.",
 	inputSchema: z.object({
 		collection: z
 			.string()
 			.describe("The name (ID) of the collection the field belongs to."),
 		field: z.string().describe("The name (ID) of the field to retrieve."),
 	}),
-	handler: async (directus, { collection, field }, { schema }) => {
-		const requestFn = () => directus.request(readField(collection, field));
-		return useDirectus(collection, schema, requestFn);
+	handler: async (directus, { collection, field }) => {
+		try {
+			const fieldData = await directus.request(readField(collection, field));
+			return formatSuccessResponse(fieldData);
+		} catch (error) {
+			return formatErrorResponse(error);
+		}
 	},
 });
 
 export const createFieldTool = defineTool("create-field", {
 	description: "Create a new field in a specified collection.",
+
 	inputSchema: z.object({
 		collection: z
 			.string()
@@ -60,9 +69,13 @@ export const createFieldTool = defineTool("create-field", {
 			"The data for the new field (field name, type, optional schema/meta).",
 		),
 	}),
-	handler: async (directus, { collection, data }, { schema }) => {
-		const requestFn = () => directus.request(createField(collection, data));
-		return useDirectus(collection, schema, requestFn);
+	handler: async (directus, { collection, data }) => {
+		try {
+			const result = await directus.request(createField(collection, data));
+			return formatSuccessResponse(result);
+		} catch (error) {
+			return formatErrorResponse(error);
+		}
 	},
 });
 
@@ -77,49 +90,11 @@ export const updateFieldTool = defineTool("update-field", {
 			"The partial data to update the field with (type, schema, meta).",
 		),
 	}),
-	handler: async (directus, { collection, field, data }, { schema }) => {
-		const requestFn = () =>
-			directus.request(updateField(collection, field, data));
-		return useDirectus(collection, schema, requestFn);
-	},
-});
-
-export const deleteFieldTool = defineTool("delete-field", {
-	description: "Delete an existing field from a specified collection.",
-	inputSchema: z.object({
-		collection: z
-			.string()
-			.describe("The name (ID) of the collection containing the field."),
-		field: z.string().describe("The name (ID) of the field to delete."),
-	}),
-	handler: async (
-		directus,
-		{ collection, field },
-		{ schema }: { schema: Schema },
-	) => {
-		if (!schema[collection]) {
-			return formatErrorResponse(
-				new Error(
-					`Collection "${collection}" not found. Use read-collections tool first.`,
-				),
-			);
-		}
-
+	handler: async (directus, { collection, field, data }) => {
 		try {
-			await directus.request(deleteField(collection, field));
-			return {
-				content: [
-					{
-						type: "text" as const,
-						text: JSON.stringify({
-							success: true,
-							message: `Field '${field}' deleted successfully from collection '${collection}'.`,
-						}),
-					},
-				],
-			};
-		} catch (error: unknown) {
-			// Use the imported error formatter
+			const result = await directus.request(updateField(collection, field, data));
+			return formatSuccessResponse(result);
+		} catch (error) {
 			return formatErrorResponse(error);
 		}
 	},

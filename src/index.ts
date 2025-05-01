@@ -6,18 +6,24 @@ import {
 	type CallToolRequest,
 	CallToolRequestSchema,
 	ListToolsRequestSchema,
+	ListPromptsRequestSchema,
+	GetPromptRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { createConfig } from "./config.js";
-import { createDirectus } from "./directus.js";
+import { createDirectus, authenticateDirectus } from "./directus.js";
 import { getTools } from "./tools/index.js";
 import { toMpcTools } from "./utils/to-mpc-tools.js";
 import { fetchSchema } from "./utils/fetch-schema.js";
+import { fetchPrompts } from "./prompts/index.js";
+import { getAvailablePrompts, handleGetPrompt } from "./prompts/handlers.js";
 
 async function main() {
 	const config = createConfig();
 	const directus = createDirectus(config);
+	await authenticateDirectus(directus, config);
 	const schema = await fetchSchema(directus);
-	const tools = getTools();
+	const prompts = await fetchPrompts(directus, config);
+	const availableTools = getTools(config);
 
 	const server = new Server(
 		{
@@ -27,15 +33,39 @@ async function main() {
 		{
 			capabilities: {
 				tools: {},
+				resources: {},
+				prompts: {},
 			},
 		},
 	);
 
+	// Manage prompts
+	server.setRequestHandler(ListPromptsRequestSchema, async () => {
+		return {
+			prompts: getAvailablePrompts(prompts),
+		};
+	});
+
+	// Get specific prompt
+	server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+		const promptName = request.params.name;
+		const args = request.params.arguments || {};
+
+		return await handleGetPrompt(
+			directus,
+			config,
+			promptName,
+			args
+		);
+	});
+
+	// Manage tool requests
 	server.setRequestHandler(
 		CallToolRequestSchema,
 		async (request: CallToolRequest) => {
 			try {
-				const tool = tools.find((definition) => {
+				// Find the tool definition among ALL tools
+				const tool = availableTools.find((definition) => {
 					return definition.name === request.params.name;
 				});
 
@@ -43,28 +73,31 @@ async function main() {
 					throw new Error(`Unknown tool: ${request.params.name}`);
 				}
 
+				// Proceed with execution if permission check passes
 				const { inputSchema, handler } = tool;
-
 				const args = inputSchema.parse(request.params.arguments);
-
-				return await handler(directus, args, { schema });
+				return await handler(directus, args, { schema, baseUrl: config.DIRECTUS_URL });
 			} catch (error) {
 				console.error("Error executing tool:", error);
+				const errorMessage =
+					error instanceof Error ? error.message : JSON.stringify(error);
 
 				return {
 					content: [
 						{
 							type: "text",
-							text: JSON.stringify(error),
+							text: errorMessage,
 						},
 					],
+					isError: true,
 				};
 			}
 		},
 	);
 
+	// Return the pre-filtered list for listing purposes
 	server.setRequestHandler(ListToolsRequestSchema, async () => {
-		return { tools: toMpcTools(tools) };
+		return { tools: toMpcTools(availableTools) };
 	});
 
 	const transport = new StdioServerTransport();
