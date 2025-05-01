@@ -2,7 +2,7 @@
 
 MCP server for use with Directus. Allows your AI tools to connect to and use your Directus API on your behalf.
 
-This is an experiment by yours truly (@rijkvanzanten). Any and all PRs are more than welcome :)
+This started as an experiment by the dude, the legend, the (@rijkvanzanten) 🙌
 
 ## Installation
 
