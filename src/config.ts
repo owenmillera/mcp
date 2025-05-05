@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import * as z from 'zod';
+import { DEFAULT_SYSTEM_PROMPT } from './constants/default-prompts.js';
 import { nullableString } from './types/common.js';
 
 const configSchema = z
@@ -18,21 +19,33 @@ const configSchema = z
 			.array(z.string())
 			.default(['delete-item'])
 			.describe("Disable specific tools by name. Defaults to ['delete-item']"),
-		SYSTEM_PROMPT_ENABLED: z
+		MCP_SYSTEM_PROMPT_ENABLED: z
 			.string()
 			.optional()
 			.default('false')
 			.describe('Enable a tailored system prompt for the MCP server.'),
-		SYSTEM_PROMPT: nullableString().describe(
-			'Optional tailored prompt for the MCP server. Will load into the context before you use any other Directus tools.',
-		),
-		PROMPTS_COLLECTION_ENABLED: z
+		MCP_SYSTEM_PROMPT: nullableString().describe(
+			'System prompt for the MCP server. Will load into the context before you use any other Directus tools.',
+		).default(DEFAULT_SYSTEM_PROMPT),
+		DIRECTUS_PROMPTS_COLLECTION_ENABLED: z
 			.string()
 			.optional()
 			.default('false')
 			.describe('Enable MCP prompts.'),
-		PROMPTS_COLLECTION: nullableString().describe(
+		DIRECTUS_PROMPTS_COLLECTION: nullableString().describe(
 			'The Directus collection to store LLM prompts in.',
+		),
+		DIRECTUS_PROMPTS_NAME_FIELD: nullableString().default('name').describe(
+			'The name of the field that contains the prompt name.',
+		),
+		DIRECTUS_PROMPTS_DESCRIPTION_FIELD: nullableString().default('description').describe(
+			'The name of the field that contains the prompt description.',
+		),
+		DIRECTUS_PROMPTS_SYSTEM_PROMPT_FIELD: nullableString().default('system_prompt').describe(
+			'The name of the field that contains the prompt.',
+		),
+		DIRECTUS_PROMPTS_MESSAGES_FIELD: nullableString().default('messages').describe(
+			'The name of the field that contains the prompt messages.',
 		),
 	})
 	.refine(
