@@ -8,11 +8,11 @@ import { formatErrorResponse, formatSuccessResponse } from '../utils/response.js
 export function createSystemPrompt(config: Config) {
 	return defineTool('system-prompt', {
 		description:
-			'Retrieve important information about your role. Call only once before using any other tools.',
+			'IMPORTANT! Call this tool whenever available first. It will retrieve important information about your role.',
 		inputSchema: z.object({}),
 		handler: async (_directus, _args) => {
 			return {
-				content: [{ type: 'text', text: config.SYSTEM_PROMPT as string }],
+				content: [{ type: 'text', text: config.MCP_SYSTEM_PROMPT as string }],
 			};
 		},
 	});
@@ -28,11 +28,15 @@ export function getPromptsTool(config: Config) {
 		}),
 		handler: async (directus, query) => {
 			try {
-				if (!config.PROMPTS_COLLECTION) {
-					throw new Error('PROMPTS_COLLECTION is not set');
+				if (config.DIRECTUS_PROMPTS_COLLECTION_ENABLED === 'false') {
+					throw new Error('DIRECTUS_PROMPTS_COLLECTION_ENABLED is false');
 				}
 
-				const result = await directus.request(readItems(config.PROMPTS_COLLECTION as unknown as never, query));
+				if (!config.DIRECTUS_PROMPTS_COLLECTION) {
+					throw new Error('DIRECTUS_PROMPTS_COLLECTION is not set');
+				}
+
+				const result = await directus.request(readItems(config.DIRECTUS_PROMPTS_COLLECTION as unknown as never, query));
 				return formatSuccessResponse(result);
 			}
 			catch (error) {

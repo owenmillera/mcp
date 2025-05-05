@@ -1,5 +1,6 @@
 import type { Config } from '../config.js';
 import type { ToolDefinition } from '../types/tool.js';
+import { readCommentsTool, upsertCommentTool } from './comments.js';
 import {
 	createFieldTool,
 	readFieldsTool,
@@ -11,24 +12,23 @@ import {
 	readFlowsTool,
 	triggerFlowTool,
 } from './flows.js';
-
 import {
 	createItemTool,
 	deleteItemTool,
 	readItemsTool,
 	updateItemTool,
 } from './items.js';
-
 import { markdownTool } from './markdown.js';
-
 import { createSystemPrompt } from './prompts.js';
-
 import schemaTool from './schema.js';
-import usersMeTool from './users.js';
+import { readUsersTool, usersMeTool } from './users.js';
 
 export const getTools = (config: Config) => {
 	const toolList: ToolDefinition[] = [
+		// Users
 		usersMeTool,
+		readUsersTool,
+		// Schema
 		schemaTool,
 		// Items
 		readItemsTool,
@@ -47,12 +47,15 @@ export const getTools = (config: Config) => {
 		readFieldTool,
 		createFieldTool,
 		updateFieldTool,
+		// Comments
+		readCommentsTool,
+		upsertCommentTool,
 		// Markdown
 		markdownTool,
 	];
 
 	// If system propmt is enabled and exists, add the system prompt tool
-	if (config.SYSTEM_PROMPT_ENABLED === 'true' && config.SYSTEM_PROMPT) {
+	if (config.MCP_SYSTEM_PROMPT_ENABLED === 'true' && config.MCP_SYSTEM_PROMPT) {
 		toolList.push(createSystemPrompt(config));
 	}
 

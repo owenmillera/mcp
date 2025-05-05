@@ -25,7 +25,9 @@ export async function handleGetPrompt(
 		throw new Error(`Prompt not found: ${promptName}`);
 	}
 
-	return createPromptResult(promptItem.messages, args);
+	// Ensure messages is an array, even if empty
+	const messages = promptItem.messages || [];
+	return createPromptResult(messages, args, promptItem.systemPrompt);
 }
 
 /**

@@ -8,6 +8,7 @@ export interface PromptItem {
 	id: string;
 	name: string;
 	description: string;
+	systemPrompt: string;
 	messages: Array<{
 		role: 'user' | 'assistant';
 		text: string;
@@ -36,16 +37,32 @@ export async function fetchPrompts(
 	schema: Schema,
 ): Promise<Record<string, McpPrompt>> {
 	// If no prompts collection is configured, return an empty object
-	if (!config.PROMPTS_COLLECTION) {
+	if (!config.DIRECTUS_PROMPTS_COLLECTION) {
 		console.error('No prompts collection configured, skipping prompt fetching');
 		return {};
 	}
 
 	// If the prompts collection isn't in the schema, then throw an error because there's a permissions issue or it doesn't exist
-	if (!schema[config.PROMPTS_COLLECTION]) {
+	if (!schema[config.DIRECTUS_PROMPTS_COLLECTION]) {
 		throw new Error(
 			'Prompts collection not found in the schema. Use the read-collections tool first. If you have already used the read-collections tool, then check the permissions of the user you are using to fetch prompts.',
 		);
+	}
+
+	console.error('config', config);
+
+	// Check the prompts collection has the required fields
+	const requiredFields = [
+		config.DIRECTUS_PROMPTS_NAME_FIELD,
+		config.DIRECTUS_PROMPTS_DESCRIPTION_FIELD,
+		config.DIRECTUS_PROMPTS_SYSTEM_PROMPT_FIELD,
+		config.DIRECTUS_PROMPTS_MESSAGES_FIELD,
+	];
+
+	for (const field of requiredFields) {
+		if (!schema[config.DIRECTUS_PROMPTS_COLLECTION]?.[field as keyof typeof schema[string]]) {
+			throw new Error(`Prompt field ${field} not found in the prompts collection.`);
+		}
 	}
 
 	try {
@@ -53,19 +70,33 @@ export async function fetchPrompts(
 
 		const response = (await directus.request(
 			// @ts-expect-error - We're using a dynamic collection name
-			readItems(config.PROMPTS_COLLECTION),
+			readItems(config.DIRECTUS_PROMPTS_COLLECTION),
 		)) as DirectusCollection[];
 
 		const prompts: Record<string, McpPrompt> = {};
 
 		for (const item of response) {
-			if (!item.messages || item.messages.length === 0) continue;
-
+			// Still include prompts even if messages are empty or null
 			const variables = new Set<string>();
+			const messagesField = config.DIRECTUS_PROMPTS_MESSAGES_FIELD as string;
+			const systemPromptField = config.DIRECTUS_PROMPTS_SYSTEM_PROMPT_FIELD as string;
 
-			for (const message of item.messages) {
-				for (const variable of extractMustacheVariables(message.text)) variables.add(variable)
-				;
+			// Extract variables from system prompt if it exists
+			if (item[systemPromptField]) {
+				for (const variable of extractMustacheVariables(item[systemPromptField])) {
+					variables.add(variable);
+				}
+			}
+
+			// Extract variables from messages if they exist
+			if (item[messagesField] && Array.isArray(item[messagesField])) {
+				for (const message of item[messagesField]) {
+					if (message && message.text) {
+						for (const variable of extractMustacheVariables(message.text)) {
+							variables.add(variable);
+						}
+					}
+				}
 			}
 
 			prompts[item.name] = {
@@ -99,7 +130,7 @@ export async function fetchPromptByName(
 	config: Config,
 	promptName: string,
 ): Promise<PromptItem | undefined> {
-	if (!config.PROMPTS_COLLECTION) return undefined;
+	if (!config.DIRECTUS_PROMPTS_COLLECTION) return undefined;
 
 	try {
 		// Type assertion to any[] for the Directus collection
@@ -107,13 +138,10 @@ export async function fetchPromptByName(
 
 		const response = (await directus.request(
 			// @ts-expect-error - We're using a dynamic collection name
-			readItems(config.PROMPTS_COLLECTION, {
+			readItems(config.DIRECTUS_PROMPTS_COLLECTION, {
 				filter: {
-					title: {
+					[config.DIRECTUS_PROMPTS_NAME_FIELD as string]: {
 						_eq: promptName,
-					},
-					status: {
-						_eq: 'published',
 					},
 				},
 				limit: 1,
@@ -124,11 +152,17 @@ export async function fetchPromptByName(
 
 		// Map Directus item to our expected format
 		const item = response[0];
+		const nameField = config.DIRECTUS_PROMPTS_NAME_FIELD as string;
+		const descriptionField = config.DIRECTUS_PROMPTS_DESCRIPTION_FIELD as string;
+		const systemPromptField = config.DIRECTUS_PROMPTS_SYSTEM_PROMPT_FIELD as string;
+		const messagesField = config.DIRECTUS_PROMPTS_MESSAGES_FIELD as string;
+
 		return {
 			id: item.id,
-			name: item.name,
-			description: item.description,
-			messages: item.messages,
+			name: item[nameField],
+			description: item[descriptionField],
+			systemPrompt: item[systemPromptField] || '',
+			messages: item[messagesField] || [],
 		};
 	}
 	catch (error) {
