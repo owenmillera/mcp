@@ -7,7 +7,12 @@ import {
 	readFieldTool,
 	updateFieldTool,
 } from './fields.js';
-import { importFileTool, readFilesTool, updateFilesTool } from './files.js';
+import {
+	importFileTool,
+	readFilesTool,
+	readFoldersTool,
+	updateFilesTool,
+} from './files.js';
 import {
 	readFlowsTool,
 	triggerFlowTool,
@@ -39,6 +44,7 @@ export const getTools = (config: Config) => {
 		readFlowsTool,
 		triggerFlowTool,
 		// Files
+		readFoldersTool,
 		readFilesTool,
 		importFileTool,
 		updateFilesTool,

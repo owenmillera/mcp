@@ -133,7 +133,6 @@ export async function fetchPromptByName(
 	if (!config.DIRECTUS_PROMPTS_COLLECTION) return undefined;
 
 	try {
-		// Type assertion to any[] for the Directus collection
 		type DirectusCollection = any;
 
 		const response = (await directus.request(

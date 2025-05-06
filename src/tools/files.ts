@@ -4,6 +4,7 @@ import {
 	readAssetArrayBuffer,
 	readFile,
 	readFiles,
+	readFolders,
 	updateFilesBatch,
 } from '@directus/sdk';
 import { z } from 'zod';
@@ -51,9 +52,11 @@ export const readFilesTool = defineTool('read-files', {
 				// Default to all fields if raw to ensure we get type and filename
 				const fieldsForMetadata = input.raw ? ['*'] : input.query?.fields;
 
-				const metadata = await directus.request(
-					readFile(input.id, { fields: fieldsForMetadata }),
-				);
+				const query = fieldsForMetadata
+					? { fields: fieldsForMetadata }
+					: undefined;
+
+				const metadata = await directus.request(readFile(input.id, query));
 
 				if (!metadata) {
 					return formatErrorResponse(`File with ID ${input.id} not found.`);
@@ -61,9 +64,29 @@ export const readFilesTool = defineTool('read-files', {
 
 				// If raw content requested, get base64 (usually for image analysis or vision tool use)
 				if (input.raw) {
-					const fileData = await directus.request<ArrayBuffer>(
-						readAssetArrayBuffer(input.id),
-					);
+					// Check if this is an image and if we have dimensions
+					const isImage = metadata['type']?.toString().startsWith('image/');
+					const width = Number(metadata['width']) || 0;
+					const height = Number(metadata['height']) || 0;
+
+					// If image exceeds 1200px in any dimension, apply resize parameter
+					let assetRequest;
+
+					if (isImage && (width > 1200 || height > 1200)) {
+						// Calculate which dimension to constrain
+						const transforms = width > height
+							? [['resize', { width: 1200, fit: 'contain' }]]
+							: [['resize', { height: 1200, fit: 'contain' }]];
+
+						assetRequest = readAssetArrayBuffer(input.id, {
+							transforms: transforms as [string, ...any[]][],
+						});
+					}
+					else {
+						assetRequest = readAssetArrayBuffer(input.id);
+					}
+
+					const fileData = await directus.request<ArrayBuffer>(assetRequest);
 					const fileBuffer = Buffer.from(fileData);
 					const base64Content = fileBuffer.toString('base64');
 					const sizeInBytes = fileBuffer.byteLength;
@@ -141,6 +164,25 @@ export const importFileTool = defineTool('import-file', {
 			const result = await directus.request(
 				importFile(input.url, input.data || {}),
 			);
+			return formatSuccessResponse(result);
+		}
+		catch (error) {
+			return formatErrorResponse(error);
+		}
+	},
+});
+
+export const readFoldersTool = defineTool('read-folders', {
+	description: 'Read the metadata of existing folders in Directus.',
+	annotations: {
+		title: 'Read Folders',
+	},
+	inputSchema: z.object({
+		query: itemQuerySchema.optional(),
+	}),
+	handler: async (directus, input) => {
+		try {
+			const result = await directus.request(readFolders(input.query));
 			return formatSuccessResponse(result);
 		}
 		catch (error) {
