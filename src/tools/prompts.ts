@@ -8,7 +8,7 @@ import { formatErrorResponse, formatSuccessResponse } from '../utils/response.js
 export function createSystemPrompt(config: Config) {
 	return defineTool('system-prompt', {
 		description:
-			'IMPORTANT! Call this tool whenever available first. It will retrieve important information about your role.',
+			'IMPORTANT! Call this tool first. It will retrieve important information about your role.',
 		inputSchema: z.object({}),
 		handler: async (_directus, _args) => {
 			return {

@@ -75,8 +75,8 @@ export const readFilesTool = defineTool('read-files', {
 					if (isImage && (width > 1200 || height > 1200)) {
 						// Calculate which dimension to constrain
 						const transforms = width > height
-							? [['resize', { width: 1200, fit: 'contain' }]]
-							: [['resize', { height: 1200, fit: 'contain' }]];
+							? [['resize', { width: 800, fit: 'contain' }]]
+							: [['resize', { height: 800, fit: 'contain' }]];
 
 						assetRequest = readAssetArrayBuffer(input.id, {
 							transforms: transforms as [string, ...any[]][],
@@ -121,7 +121,7 @@ export const readFilesTool = defineTool('read-files', {
 export const updateFilesTool = defineTool('update-files', {
 	description: 'Update the metadata of existing file(s) in Directus.',
 	annotations: {
-		title: 'Update File',
+		title: 'Update Files',
 	},
 	inputSchema: z.object({
 		data: z
@@ -130,7 +130,6 @@ export const updateFilesTool = defineTool('update-files', {
 				'An array of objects containing the id and fields to update (e.g., title, description, tags, folder).',
 			),
 	}),
-
 	handler: async (directus, input) => {
 		try {
 			if (Object.keys(input.data).length === 0) {
@@ -158,7 +157,6 @@ export const importFileTool = defineTool('import-file', {
 		url: z.string().describe('URL of the file to import.'),
 		data: FileSchema,
 	}),
-
 	handler: async (directus, input) => {
 		try {
 			const result = await directus.request(

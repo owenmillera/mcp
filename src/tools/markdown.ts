@@ -14,7 +14,7 @@ export function htmlToMarkdown(html: string) {
 
 export const markdownTool = defineTool('markdown-tool', {
 	description:
-		'Use this tool when you want to quickly convert content back and forth between markdown and HTML for WYSIWYG fields inside the CMS.',
+		'Convert HTML to Markdown or Markdown to HTML.',
 	annotations: {
 		title: 'Markdown Tool',
 		readOnlyHint: true,
@@ -22,9 +22,10 @@ export const markdownTool = defineTool('markdown-tool', {
 	inputSchema: z.object({
 		html: z.string().optional().describe('HTML string to convert to Markdown'),
 		markdown: z.string().optional().describe('Markdown string to convert to HTML'),
-
+	}).refine((data) => data.html || data.markdown, {
+		message: 'Either html or markdown must be provided',
+		path: ['html', 'markdown'],
 	}),
-	// @ts-expect-error - directus isn't used
 	handler: async (_directus, query) => {
 		try {
 			if (query.html) {
