@@ -1,0 +1,47 @@
+{
+	"name": "@directus/content-mcp",
+	"type": "module",
+	"version": "0.1.0",
+	"packageManager": "pnpm@10.4.1",
+	"description": "Model Context Protocol server for Directus projects.",
+	"contributors": [
+		"Rijk van Zanten  <rijkvanzanten@me.com>",
+		"Bryant Gillespie"
+	],
+	"license": "MIT",
+	"keywords": [
+		"ai",
+		"directus",
+		"mcp",
+		"modelcontextprotocol"
+	],
+	"main": "dist/index.js",
+	"bin": {
+		"directus-mcp-server": "./dist/index.js"
+	},
+	"scripts": {
+		"prepare": "pnpm build",
+		"build": "tsc --project tsconfig.json",
+		"dev": "tsc --project tsconfig.json --watch & node --watch dist/index.js",
+		"start": "node dist/index.js",
+		"lint": "eslint .",
+		"lint:fix": "eslint --fix ."
+	},
+
+	"dependencies": {
+		"@directus/sdk": "19.1.0",
+		"@modelcontextprotocol/sdk": "1.10.2",
+		"dotenv": "16.5.0",
+		"isomorphic-dompurify": "^2.24.0",
+		"marked": "^15.0.11",
+		"zod": "4.0.0-beta.20250424T163858"
+	},
+	"devDependencies": {
+		"@directus/eslint-config": "^0.1.0",
+		"@directus/tsconfig": "3.0.0",
+		"@directus/types": "^13.1.0",
+		"@types/node": "22.15.3",
+		"eslint": "^9.25.1",
+		"typescript": "5.8.3"
+	}
+}
