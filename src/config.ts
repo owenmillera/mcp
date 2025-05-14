@@ -22,10 +22,10 @@ const configSchema = z
 		MCP_SYSTEM_PROMPT_ENABLED: z
 			.string()
 			.optional()
-			.default('false')
+			.default('true')
 			.describe('Enable a tailored system prompt for the MCP server.'),
 		MCP_SYSTEM_PROMPT: nullableString().describe(
-			'System prompt for the MCP server. Will load into the context before you use any other Directus tools.',
+			'Overwrite the default system prompt for the MCP server. Will load into the context before you use any other Directus tools.',
 		).default(DEFAULT_SYSTEM_PROMPT),
 		DIRECTUS_PROMPTS_COLLECTION_ENABLED: z
 			.string()
