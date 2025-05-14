@@ -1,4 +1,4 @@
-import DOMPurify from 'isomorphic-dompurify';
+import * as DOMPurify from 'isomorphic-dompurify';
 import { marked } from 'marked';
 import * as z from 'zod';
 import { defineTool } from '../utils/define.js';
@@ -26,6 +26,7 @@ export const markdownTool = defineTool('markdown-tool', {
 		message: 'Either html or markdown must be provided',
 		path: ['html', 'markdown'],
 	}),
+	// @ts-expect-error - We're not using the directus client here
 	handler: async (_directus, query) => {
 		try {
 			if (query.html) {
