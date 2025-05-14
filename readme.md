@@ -206,7 +206,8 @@ Both system prompts and message content support mustache templating using the `{
 
 1. Clone the repo
 2. `pnpm install && pnpm build` to build the server
-3. Configure Claude AI like above, but pointing it to the `dist` file instead:
+3. Configure Claude Desktop or Cursor like above, but pointing it to the `dist` file instead:
+4. Use `pnpm dev` to watch for changes and rebuild the server
 
 ```json
 {
@@ -303,12 +304,6 @@ Sample Claude Desktop Config for local dev with full settings
 		}
 	}
 }
-```
-
-## Development
-
-```bash
-pnpm dev
 ```
 
 # ❤️ Contributing
